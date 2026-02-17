@@ -1,0 +1,50 @@
+Explain the difference between a stack and a queue, and give a real-world analogy for each.
+Write a Python function that checks whether a given string is a valid palindrome, ignoring spaces and punctuation.
+Summarize the following paragraph in one sentence: 'The Industrial Revolution, which began in Britain in the late 18th century, transformed economies from agrarian to industrial, leading to urbanization, new transportation systems, and significant social changes that reshaped the modern world.'
+Extract all the named entities (people, places, organizations) from this text: 'Elon Musk announced that SpaceX will launch its next Starship mission from Boca Chica, Texas, in collaboration with NASA.'
+Write a short poem about a rainy afternoon in Tokyo.
+What is the time complexity of binary search, and why?
+Convert this SQL query to a pandas equivalent: SELECT name, age FROM users WHERE age > 30 ORDER BY age DESC;
+I have a list of 1000 integers. What is the most efficient way to find the top 10 largest values in Python?
+Write a compelling product description for a noise-canceling headphone aimed at remote workers.
+Explain the CAP theorem in distributed systems as if I'm a high school student.
+Given the numbers 2, 7, 11, 15 and a target of 9, find two numbers that add up to the target. Explain your approach.
+Summarize the key points of the EU's General Data Protection Regulation (GDPR) in bullet points.
+Write a JavaScript function that debounces another function with a given delay.
+What logical fallacy is present in this argument: 'Everyone is buying this phone, so it must be the best one on the market'?
+Translate this English sentence to formal French: 'Could you please send me the report by Friday?'
+Write a short horror story in exactly 100 words.
+Explain how a transformer model's self-attention mechanism works, step by step.
+Extract the dates and monetary amounts from this text: 'On March 15, 2024, the company reported revenue of $4.2 billion, up from $3.8 billion on December 31, 2023.'
+Write a Bash one-liner that finds all .log files in /var/log modified in the last 24 hours.
+Compare and contrast microservices architecture and monolithic architecture. Give pros and cons of each.
+A farmer has 17 sheep. All but 9 die. How many sheep are left? Explain your reasoning.
+Write a professional email declining a job offer while keeping the relationship positive.
+Implement a simple LRU cache in Python with get and put operations.
+Summarize the plot of George Orwell's '1984' in three sentences.
+What are the SOLID principles in object-oriented programming? Give a brief example for each.
+Write a creative tagline for a sustainable fashion brand targeting Gen Z consumers.
+Explain the difference between supervised, unsupervised, and reinforcement learning with one example each.
+Parse this JSON and extract all email addresses: {"users": [{"name": "Alice", "email": "alice@example.com"}, {"name": "Bob", "email": "bob@test.org"}]}
+If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets? Show your reasoning.
+Write a TypeScript interface for a REST API response that returns a paginated list of blog posts.
+Describe the water cycle in a way that would engage a 7-year-old child.
+Write a regex pattern that matches valid email addresses and explain each part.
+What are three potential ethical concerns with using large language models in healthcare?
+Create a SQL schema for a simple e-commerce database with products, customers, and orders tables.
+Rewrite this sentence to be more concise: 'Due to the fact that the weather conditions were unfavorable, we made the decision to postpone the outdoor event to a later date.'
+Write a short dialogue between a frustrated customer and a patient support agent about a delayed shipment.
+Explain the concept of recursion using the Fibonacci sequence as an example, then optimize it with memoization.
+List five common HTTP status codes and explain when each is returned.
+Write a haiku about machine learning.
+You have 8 identical-looking balls. One is heavier. Using a balance scale, what is the minimum number of weighings to find the heavy ball? Explain.
+Summarize the differences between REST and GraphQL APIs in a comparison table format.
+Write a Python decorator that logs the execution time of any function it wraps.
+Explain blockchain technology to someone with no technical background using a simple analogy.
+Extract the action items from this meeting note: 'John will prepare the Q3 report by Thursday. Sarah needs to follow up with the vendor about pricing. The team agreed to move the deadline to November 15.'
+Write an opening paragraph for a sci-fi novel set on a colony ship traveling to Proxima Centauri.
+What is the difference between '==' and '===' in JavaScript? Give examples where they behave differently.
+A bat and a ball together cost $1.10. The bat costs $1.00 more than the ball. How much does the ball cost? Walk through the solution carefully.
+Generate five diverse test cases for a function that reverses words in a sentence.
+Explain the pros and cons of using NoSQL databases versus relational databases for a social media application.
+Write a motivational LinkedIn post about learning from failure in your career, keeping it under 150 words.

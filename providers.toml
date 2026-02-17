@@ -1,0 +1,8 @@
+[providers."ohmygpt"]
+api_base = "https://apic1.ohmycdn.com"
+api_key_env = "OMG_API_KEY"
+model = "claude-opus-4-6"
+[providers."openrouter"]
+api_base = "https://openrouter.ai/api"
+api_key_env = "OPENROUTER_API_KEY"
+model = "anthropic/claude-opus-4.6"
