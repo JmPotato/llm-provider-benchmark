@@ -4,6 +4,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 import json
+import logging
+import os
 from pathlib import Path
 import re
 import sys
@@ -17,6 +19,21 @@ from providers import ProviderConfig, ProviderRegistry
 from records import RequestRecord
 from runner import BenchmarkRunner, LiteLLMClient, ProviderRunData, SLOConfig
 from storage import BenchmarkStorage
+
+
+logger = logging.getLogger(__name__)
+
+
+def _setup_logging() -> None:
+    """Configure root logger from LLM_BENCH_LOG_LEVEL env var (default: WARNING)."""
+    level_name = os.environ.get("LLM_BENCH_LOG_LEVEL", "WARNING").upper()
+    level = getattr(logging, level_name, logging.WARNING)
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s %(levelname)-8s %(name)s: %(message)s",
+        datefmt="%H:%M:%S",
+        stream=sys.stderr,
+    )
 
 
 app = typer.Typer(no_args_is_help=True, help="LLM Provider benchmark CLI")
@@ -406,7 +423,7 @@ def _format_timestamp(value: object) -> str:
         return "-"
     try:
         numeric = float(value)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return "-"
     return datetime.fromtimestamp(numeric).astimezone().isoformat(timespec="seconds")
 
@@ -416,7 +433,7 @@ def _format_duration(value: object) -> str:
         return "-"
     try:
         return f"{float(value):.3f}s"
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return "-"
 
 
@@ -509,11 +526,13 @@ def prompt_generate(
 
     request_prompt = _build_prompt_generation_task(count=count, instruction=instruction)
     client = LiteLLMClient()
+    logger.debug("Generating %d prompts using provider %r (model=%s)", count, provider_name, provider_config.model)
     try:
         generated_text = "".join(
             client.stream_completion(provider=provider_config, prompt=request_prompt)
         )
     except Exception as exc:  # noqa: BLE001
+        logger.warning("Prompt generation failed: [%s] %s", type(exc).__name__, exc, exc_info=True)
         typer.echo(f"Prompt generation failed: {type(exc).__name__}: {exc}")
         raise typer.Exit(1)
 
@@ -531,6 +550,7 @@ def prompt_generate(
             json.dumps({"prompt": prompt}, ensure_ascii=False) for prompt in prompts
         )
     output.write_text(body + "\n", encoding="utf-8")
+    logger.debug("Wrote %d prompts to %s (format=%s)", len(prompts), output, resolved_format)
 
     typer.echo(
         json.dumps(
@@ -564,14 +584,17 @@ def provider_add(
         api_key_env=api_key_env,
     )
 
+    logger.debug("Validating provider %r (model=%s)", name, model)
     try:
         _validate_provider_response(provider=provider)
     except Exception as exc:  # noqa: BLE001
+        logger.warning("Provider validation failed: %r [%s] %s", name, type(exc).__name__, exc, exc_info=True)
         typer.echo(f"Provider validation failed: {type(exc).__name__}: {exc}")
         raise typer.Exit(1)
 
     registry = ProviderRegistry(config)
     registry.save_provider(provider)
+    logger.debug("Provider %r added to %s", name, config)
     typer.echo(f"Provider added: {name}")
 
 
@@ -750,6 +773,7 @@ def run_benchmark(
     if not prompt_file.exists():
         typer.echo(f"Prompt file not found: {prompt_file}")
         raise typer.Exit(1)
+    logger.debug("Loading prompts from %s", prompt_file)
     try:
         prompts = _load_prompts(prompt_file)
     except ValueError as exc:
@@ -758,6 +782,7 @@ def run_benchmark(
     if not prompts:
         typer.echo("Prompt file does not contain usable prompts.")
         raise typer.Exit(1)
+    logger.debug("Loaded %d prompts from %s", len(prompts), prompt_file)
 
     actual_run_id = run_id or f"run-{uuid.uuid4().hex[:8]}"
     run_progress = _RunProgress(
@@ -776,6 +801,12 @@ def run_benchmark(
     run_created = False
     run_finished = False
     run_progress.start()
+    logger.info(
+        "Starting benchmark run %s: providers=%d prompts/provider=%d "
+        "provider_concurrency=%d prompt_concurrency=%d target_rps=%s",
+        actual_run_id, len(selected_providers), len(prompts),
+        provider_concurrency, prompt_concurrency, target_rps,
+    )
     try:
         storage.create_run(
             run_id=actual_run_id,
@@ -845,6 +876,7 @@ def run_benchmark(
 
         storage.finish_run(run_id=actual_run_id, finished_at=time.time())
         run_finished = True
+        logger.info("Benchmark run %s finished", actual_run_id)
         typer.echo(
             json.dumps(
                 {
@@ -860,7 +892,10 @@ def run_benchmark(
             try:
                 storage.finish_run(run_id=actual_run_id, finished_at=time.time())
             except Exception:  # noqa: BLE001
-                pass
+                logger.warning(
+                    "Failed to mark run %s as finished during cleanup",
+                    actual_run_id, exc_info=True,
+                )
         run_progress.finalize()
         storage.close()
 
@@ -1018,6 +1053,7 @@ def report_remove(
 
 
 def main() -> None:
+    _setup_logging()
     app()
 
 

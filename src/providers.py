@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import logging
 from pathlib import Path
 import tomllib
+
+
+logger = logging.getLogger(__name__)
 
 
 def _escape_toml_string(value: str) -> str:
@@ -108,6 +112,7 @@ class ProviderRegistry:
             if not isinstance(data, dict):
                 raise ValueError(f"Provider {name!r} entry must be a table")
             loaded[str(name)] = ProviderConfig.from_dict(str(name), data)
+        logger.debug("Loaded %d provider(s) from %s", len(loaded), self.config_path)
         return loaded
 
     def list_providers(self) -> list[ProviderConfig]:
@@ -125,6 +130,7 @@ class ProviderRegistry:
 
         providers_raw[provider.name] = provider.to_dict()
         self._write_raw(raw)
+        logger.debug("Saved provider %r to %s", provider.name, self.config_path)
 
     def remove_provider(self, name: str) -> None:
         raw = self._read_raw()
@@ -136,6 +142,7 @@ class ProviderRegistry:
             raise KeyError(name)
         del providers_raw[name]
         self._write_raw(raw)
+        logger.debug("Removed provider %r from %s", name, self.config_path)
 
     def get_provider(self, name: str) -> ProviderConfig:
         providers = self.load()

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
+import logging
 import os
 from threading import Lock
 import time
@@ -11,6 +12,8 @@ from metrics import LatencyTimeline, compute_latency_metrics
 from providers import ProviderConfig
 from records import RequestRecord, TokenEvent
 from storage import BenchmarkStorage
+
+logger = logging.getLogger(__name__)
 
 
 class LLMClientProtocol(Protocol):
@@ -164,6 +167,10 @@ class BenchmarkRunner:
         if target_rps is not None and target_rps <= 0:
             raise ValueError("target_rps must be > 0")
 
+        logger.debug(
+            "Provider run start: provider=%r model=%s prompts=%d target_rps=%s prompt_concurrency=%d",
+            provider.name, provider.model, len(prompts), target_rps, prompt_concurrency,
+        )
         request_records: list[RequestRecord] = []
         token_events: list[TokenEvent] = []
         success_requests = 0
@@ -197,6 +204,10 @@ class BenchmarkRunner:
             if slo_passed:
                 slo_passed_requests += 1
 
+        logger.debug(
+            "Provider run done: provider=%r total=%d success=%d failed=%d slo_passed=%d",
+            provider.name, len(prompts), success_requests, failed_requests, slo_passed_requests,
+        )
         return ProviderRunData(
             result=ProviderRunResult(
                 run_id=run_id,
@@ -288,6 +299,7 @@ class BenchmarkRunner:
         slo: SLOConfig | None,
     ) -> tuple[int, RequestRecord, list[TokenEvent], bool, bool]:
         request_id = f"{provider.name}-{request_index}"
+        logger.debug("Request start: %s provider=%r", request_id, provider.name)
         request_started_at = self._wait_for_schedule(scheduled_at)
 
         token_texts: list[str] = []
@@ -308,8 +320,16 @@ class BenchmarkRunner:
             success = False
             error_type = type(exc).__name__
             error_message = str(exc)
+            logger.warning(
+                "Request failed: %s provider=%r [%s] %s",
+                request_id, provider.name, error_type, error_message, exc_info=True,
+            )
 
         response_done_at = self.clock()
+        logger.debug(
+            "Request done: %s success=%s tokens=%d e2e=%.3fs",
+            request_id, success, len(token_texts), response_done_at - request_started_at,
+        )
         latency = compute_latency_metrics(
             LatencyTimeline(
                 request_sent_at=request_started_at,
@@ -380,6 +400,7 @@ class BenchmarkRunner:
         try:
             callback(request_record)
         except Exception:  # noqa: BLE001
+            logger.warning("on_request_complete callback raised an exception", exc_info=True)
             return
 
     @staticmethod
@@ -402,7 +423,10 @@ class BenchmarkRunner:
             if token_count >= 0:
                 return token_count
         except Exception:  # noqa: BLE001
-            pass
+            logger.debug(
+                "Token counting failed for model=%s, falling back to chunk count=%d",
+                provider.model, fallback_count, exc_info=True,
+            )
         return fallback_count
 
     @staticmethod

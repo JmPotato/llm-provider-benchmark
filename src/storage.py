@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -9,14 +10,18 @@ import duckdb
 from providers import ProviderConfig
 from records import RequestRecord, TokenEvent
 
+logger = logging.getLogger(__name__)
+
 
 class BenchmarkStorage:
     def __init__(self, db_path: Path) -> None:
         self.db_path = db_path
+        logger.debug("Opening database: %s", db_path)
         self.connection = duckdb.connect(str(db_path))
         self._init_schema()
 
     def _init_schema(self) -> None:
+        logger.debug("Initializing schema")
         self.connection.execute(
             """
             CREATE TABLE IF NOT EXISTS runs (
@@ -85,6 +90,7 @@ class BenchmarkStorage:
         )
 
     def create_run(self, run_id: str, started_at: float, config_json: str) -> None:
+        logger.debug("Creating run: %s", run_id)
         self.connection.execute(
             """
             INSERT INTO runs (run_id, started_at, config_json)
@@ -94,6 +100,7 @@ class BenchmarkStorage:
         )
 
     def finish_run(self, run_id: str, finished_at: float) -> None:
+        logger.debug("Finishing run: %s", run_id)
         self.connection.execute(
             """
             UPDATE runs
@@ -135,6 +142,7 @@ class BenchmarkStorage:
         if existing is None:
             return False
 
+        logger.debug("Deleting run: %s", run_id)
         self.connection.execute("BEGIN TRANSACTION")
         try:
             self.connection.execute(
@@ -148,6 +156,7 @@ class BenchmarkStorage:
             self.connection.execute("DELETE FROM runs WHERE run_id = ?", [run_id])
             self.connection.execute("COMMIT")
         except Exception:  # noqa: BLE001
+            logger.warning("Error during deletion of run %s, rolling back transaction", run_id, exc_info=True)
             self.connection.execute("ROLLBACK")
             raise
         return True
@@ -271,6 +280,7 @@ class BenchmarkStorage:
     def insert_request_records(self, records: list[RequestRecord]) -> None:
         if not records:
             return
+        logger.debug("Inserting %d request records", len(records))
         self.connection.executemany(
             """
             INSERT INTO requests (
@@ -319,6 +329,7 @@ class BenchmarkStorage:
     def insert_token_events(self, events: list[TokenEvent]) -> None:
         if not events:
             return
+        logger.debug("Inserting %d token events", len(events))
         self.connection.executemany(
             """
             INSERT INTO token_events (
@@ -345,6 +356,7 @@ class BenchmarkStorage:
         )
 
     def refresh_window_metrics(self, run_id: str, provider_name: str) -> None:
+        logger.debug("Refreshing window metrics: run=%s provider=%r", run_id, provider_name)
         self.connection.execute(
             """
             DELETE FROM window_metrics_1s
