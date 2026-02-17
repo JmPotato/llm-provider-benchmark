@@ -137,8 +137,12 @@ class BenchmarkStorage:
 
         self.connection.execute("BEGIN TRANSACTION")
         try:
-            self.connection.execute("DELETE FROM token_events WHERE run_id = ?", [run_id])
-            self.connection.execute("DELETE FROM window_metrics_1s WHERE run_id = ?", [run_id])
+            self.connection.execute(
+                "DELETE FROM token_events WHERE run_id = ?", [run_id]
+            )
+            self.connection.execute(
+                "DELETE FROM window_metrics_1s WHERE run_id = ?", [run_id]
+            )
             self.connection.execute("DELETE FROM requests WHERE run_id = ?", [run_id])
             self.connection.execute("DELETE FROM providers WHERE run_id = ?", [run_id])
             self.connection.execute("DELETE FROM runs WHERE run_id = ?", [run_id])
@@ -405,14 +409,18 @@ class BenchmarkStorage:
         }
         quality = {
             "goodput": self._quantiles_from_windows(run_id, provider_name, "goodput"),
-            "error_rate": self._quantiles_from_windows(run_id, provider_name, "error_rate"),
+            "error_rate": self._quantiles_from_windows(
+                run_id, provider_name, "error_rate"
+            ),
         }
         return {"latency": latency, "throughput": throughput, "quality": quality}
 
     def close(self) -> None:
         self.connection.close()
 
-    def _quantiles_from_requests(self, run_id: str, provider_name: str, column_name: str) -> dict[str, float | int | None]:
+    def _quantiles_from_requests(
+        self, run_id: str, provider_name: str, column_name: str
+    ) -> dict[str, float | int | None]:
         row = self.connection.execute(
             f"""
             SELECT
@@ -428,7 +436,9 @@ class BenchmarkStorage:
         ).fetchone()
         return self._row_to_quantile_dict(row)
 
-    def _quantiles_from_windows(self, run_id: str, provider_name: str, column_name: str) -> dict[str, float | int | None]:
+    def _quantiles_from_windows(
+        self, run_id: str, provider_name: str, column_name: str
+    ) -> dict[str, float | int | None]:
         row = self.connection.execute(
             f"""
             SELECT
@@ -444,7 +454,9 @@ class BenchmarkStorage:
         ).fetchone()
         return self._row_to_quantile_dict(row)
 
-    def _quantiles_from_itl(self, run_id: str, provider_name: str) -> dict[str, float | int | None]:
+    def _quantiles_from_itl(
+        self, run_id: str, provider_name: str
+    ) -> dict[str, float | int | None]:
         row = self.connection.execute(
             """
             WITH token_gaps AS (

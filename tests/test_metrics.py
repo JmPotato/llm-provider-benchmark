@@ -93,7 +93,9 @@ def test_build_window_metrics() -> None:
     windows = build_window_metrics(
         [
             WindowSample(ended_at=0.3, output_tokens=10, success=True, slo_passed=True),
-            WindowSample(ended_at=0.7, output_tokens=6, success=False, slo_passed=False),
+            WindowSample(
+                ended_at=0.7, output_tokens=6, success=False, slo_passed=False
+            ),
             WindowSample(ended_at=1.2, output_tokens=4, success=True, slo_passed=False),
         ]
     )
@@ -117,7 +119,9 @@ def test_summarize_window_quantiles() -> None:
         [
             WindowSample(ended_at=0.1, output_tokens=2, success=True, slo_passed=True),
             WindowSample(ended_at=1.1, output_tokens=6, success=True, slo_passed=False),
-            WindowSample(ended_at=2.1, output_tokens=10, success=False, slo_passed=False),
+            WindowSample(
+                ended_at=2.1, output_tokens=10, success=False, slo_passed=False
+            ),
         ]
     )
     summary = summarize_window_quantiles(windows)
@@ -138,7 +142,9 @@ def test_build_window_metrics_respects_custom_window_size() -> None:
         [
             WindowSample(ended_at=0.3, output_tokens=2, success=True, slo_passed=True),
             WindowSample(ended_at=1.9, output_tokens=3, success=True, slo_passed=False),
-            WindowSample(ended_at=2.1, output_tokens=4, success=False, slo_passed=False),
+            WindowSample(
+                ended_at=2.1, output_tokens=4, success=False, slo_passed=False
+            ),
         ],
         window_seconds=2.0,
     )
@@ -150,6 +156,10 @@ def test_build_window_metrics_respects_custom_window_size() -> None:
 def test_build_window_metrics_rejects_non_positive_window_size() -> None:
     with pytest.raises(ValueError, match="window_seconds"):
         build_window_metrics(
-            [WindowSample(ended_at=0.1, output_tokens=1, success=True, slo_passed=True)],
+            [
+                WindowSample(
+                    ended_at=0.1, output_tokens=1, success=True, slo_passed=True
+                )
+            ],
             window_seconds=0.0,
         )

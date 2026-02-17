@@ -264,10 +264,14 @@ def test_runner_falls_back_to_chunk_count_when_token_counter_fails(
     assert int(row[0]) == 3
 
 
-def test_litellm_client_raises_when_api_key_missing(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_litellm_client_raises_when_api_key_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.delenv("MISSING_API_KEY", raising=False)
     client = LiteLLMClient()
-    provider = ProviderConfig(name="openai", model="gpt-4o-mini", api_key_env="MISSING_API_KEY")
+    provider = ProviderConfig(
+        name="openai", model="gpt-4o-mini", api_key_env="MISSING_API_KEY"
+    )
     with pytest.raises(ValueError):
         list(client.stream_completion(provider=provider, prompt="hello"))
 

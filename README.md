@@ -43,20 +43,15 @@ uv run llm-bench provider validate
 只验证单个 Provider：
 
 ```bash
+uv run llm-bench provider validate
 uv run llm-bench provider validate --name openai
-```
-
-如果需要机器可解析输出（JSON）：
-
-```bash
 uv run llm-bench provider validate --json
 ```
 
 4. 生成 prompt 文件（默认输出 `./prompts.txt`，默认使用第一个已配置 Provider）：
 
 ```bash
-uv run llm-bench prompt generate \
-  --count 50
+uv run llm-bench prompt generate --count 50
 ```
 
 5. 运行 Benchmark（默认读取 `./prompts.txt`，默认跑全部已配置 Provider）：
@@ -64,38 +59,30 @@ uv run llm-bench prompt generate \
 ```bash
 uv run llm-bench run \
   --provider-concurrency 2 \
-  --prompt-concurrency 8 \
-  --rps 2 \
-  --max-ttft-s 1.0 \
-  --max-e2e-s 5.0
+  --prompt-concurrency 8
 ```
 
 - `--provider-concurrency`：同时并发执行的 provider 数量上限
 - `--prompt-concurrency`：单个 provider 内 prompt 并发数上限
 - 默认会在终端实时输出进度（`stderr`），可用 `--no-progress` 关闭
 
-6. 查看报告（默认查看最新一次 run，默认输出人类可读摘要）：
+6. 查看报告（默认查看最新一次 run）：
 
 ```bash
-uv run llm-bench report summary --provider openai --db ./bench.duckdb
-```
-
-如果需要机器可解析输出（JSON）：
-
-```bash
-uv run llm-bench report summary --json --db ./bench.duckdb
+uv run llm-bench report summary
+uv run llm-bench report summary --json
 ```
 
 7. 查看历史 run 列表（包含 run id、开始/结束时间、运行时长、请求统计）：
 
 ```bash
-uv run llm-bench report list --db ./bench.duckdb
+uv run llm-bench report list
 ```
 
 8. 删除指定 run/report 结果：
 
 ```bash
-uv run llm-bench report remove --run-id run-xxxxxx --db ./bench.duckdb
+uv run llm-bench report remove --run-id run-xxxxxx
 ```
 
 ## Prompt 文件格式
@@ -118,5 +105,5 @@ uv run llm-bench report remove --run-id run-xxxxxx --db ./bench.duckdb
 ## 测试
 
 ```bash
-UV_CACHE_DIR=/tmp/uv-cache uv run pytest -q
+uv run pytest
 ```

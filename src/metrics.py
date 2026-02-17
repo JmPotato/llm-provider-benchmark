@@ -95,7 +95,9 @@ def compute_latency_metrics(timeline: LatencyTimeline) -> LatencyMetrics:
     )
 
 
-def build_window_metrics(samples: list[WindowSample], window_seconds: float = 1.0) -> list[WindowMetric]:
+def build_window_metrics(
+    samples: list[WindowSample], window_seconds: float = 1.0
+) -> list[WindowMetric]:
     if window_seconds <= 0:
         raise ValueError("window_seconds must be > 0")
 
@@ -131,7 +133,9 @@ def build_window_metrics(samples: list[WindowSample], window_seconds: float = 1.
     return window_metrics
 
 
-def summarize_window_quantiles(windows: list[WindowMetric]) -> dict[str, dict[str, float | int | None]]:
+def summarize_window_quantiles(
+    windows: list[WindowMetric],
+) -> dict[str, dict[str, float | int | None]]:
     return {
         "rps": quantile_summary([window.rps for window in windows]),
         "tps": quantile_summary([window.tps for window in windows]),

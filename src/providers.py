@@ -76,10 +76,20 @@ class ProviderConfig:
             api_key_env=_coerce_optional_string(data.get("api_key_env")),
             extra_headers=extra_headers,
             temperature=(
-                float(data["temperature"]) if "temperature" in data and data["temperature"] is not None else None
+                float(data["temperature"])
+                if "temperature" in data and data["temperature"] is not None
+                else None
             ),
-            max_tokens=(int(data["max_tokens"]) if "max_tokens" in data and data["max_tokens"] is not None else None),
-            timeout_s=(float(data["timeout_s"]) if "timeout_s" in data and data["timeout_s"] is not None else None),
+            max_tokens=(
+                int(data["max_tokens"])
+                if "max_tokens" in data and data["max_tokens"] is not None
+                else None
+            ),
+            timeout_s=(
+                float(data["timeout_s"])
+                if "timeout_s" in data and data["timeout_s"] is not None
+                else None
+            ),
         )
 
 
@@ -165,12 +175,18 @@ class ProviderRegistry:
             headers = provider_data.get("extra_headers", {})
             if headers:
                 if not isinstance(headers, dict):
-                    raise ValueError(f"Provider {provider_name!r}.extra_headers must be a table")
+                    raise ValueError(
+                        f"Provider {provider_name!r}.extra_headers must be a table"
+                    )
                 lines.append(f'[providers."{quoted_name}".extra_headers]')
                 for header_name in sorted(headers):
-                    lines.append(_format_toml_kv(str(header_name), str(headers[header_name])))
+                    lines.append(
+                        _format_toml_kv(str(header_name), str(headers[header_name]))
+                    )
             lines.append("")
 
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
         content = "\n".join(lines).strip()
-        self.config_path.write_text(content + ("\n" if content else ""), encoding="utf-8")
+        self.config_path.write_text(
+            content + ("\n" if content else ""), encoding="utf-8"
+        )

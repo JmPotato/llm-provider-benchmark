@@ -62,7 +62,9 @@ def test_provider_add_list_remove(cli_runner: CliRunner, tmp_path: Path) -> None
     )
     assert add_result.exit_code == 0
 
-    list_result = cli_runner.invoke(app, ["provider", "list", "--config", str(config_path)])
+    list_result = cli_runner.invoke(
+        app, ["provider", "list", "--config", str(config_path)]
+    )
     assert list_result.exit_code == 0
     assert "openai" in list_result.stdout
     assert "gpt-4o-mini" in list_result.stdout
@@ -73,7 +75,9 @@ def test_provider_add_list_remove(cli_runner: CliRunner, tmp_path: Path) -> None
     )
     assert remove_result.exit_code == 0
 
-    list_result_after = cli_runner.invoke(app, ["provider", "list", "--config", str(config_path)])
+    list_result_after = cli_runner.invoke(
+        app, ["provider", "list", "--config", str(config_path)]
+    )
     assert list_result_after.exit_code == 0
     assert "No providers configured." in list_result_after.stdout
 
@@ -106,7 +110,9 @@ def test_provider_add_fails_validation_and_not_persisted(
     assert add_result.exit_code != 0
     assert "Provider validation failed" in add_result.stdout
 
-    list_result = cli_runner.invoke(app, ["provider", "list", "--config", str(config_path)])
+    list_result = cli_runner.invoke(
+        app, ["provider", "list", "--config", str(config_path)]
+    )
     assert list_result.exit_code == 0
     assert "No providers configured." in list_result.stdout
 
@@ -148,7 +154,9 @@ def test_provider_validate_all(cli_runner: CliRunner, tmp_path: Path) -> None:
     assert payload["results"][0]["status"] == "ok"
 
 
-def test_provider_validate_single_provider(cli_runner: CliRunner, tmp_path: Path) -> None:
+def test_provider_validate_single_provider(
+    cli_runner: CliRunner, tmp_path: Path
+) -> None:
     config_path = tmp_path / "providers.toml"
     add_result = cli_runner.invoke(
         app,
@@ -186,7 +194,9 @@ def test_provider_validate_single_provider(cli_runner: CliRunner, tmp_path: Path
     assert payload["results"][0]["provider"] == "openai"
 
 
-def test_provider_validate_default_output_is_human_readable(cli_runner: CliRunner, tmp_path: Path) -> None:
+def test_provider_validate_default_output_is_human_readable(
+    cli_runner: CliRunner, tmp_path: Path
+) -> None:
     config_path = tmp_path / "providers.toml"
     add_result = cli_runner.invoke(
         app,
@@ -219,7 +229,9 @@ def test_provider_validate_default_output_is_human_readable(cli_runner: CliRunne
     assert "- OK   openai (gpt-4o-mini) output_tokens=2" in result.stdout
 
 
-def test_provider_validate_fails_when_provider_missing(cli_runner: CliRunner, tmp_path: Path) -> None:
+def test_provider_validate_fails_when_provider_missing(
+    cli_runner: CliRunner, tmp_path: Path
+) -> None:
     result = cli_runner.invoke(
         app,
         [
@@ -412,7 +424,9 @@ def test_run_fails_when_provider_missing(cli_runner: CliRunner, tmp_path: Path) 
     assert "Provider not found" in result.stdout
 
 
-def test_run_fails_when_target_rps_is_non_positive(cli_runner: CliRunner, tmp_path: Path) -> None:
+def test_run_fails_when_target_rps_is_non_positive(
+    cli_runner: CliRunner, tmp_path: Path
+) -> None:
     config_path = tmp_path / "providers.toml"
     db_path = tmp_path / "bench.duckdb"
     prompts_path = tmp_path / "prompts.txt"
@@ -453,7 +467,9 @@ def test_run_fails_when_target_rps_is_non_positive(cli_runner: CliRunner, tmp_pa
     assert "must be greater than 0" in result.stdout
 
 
-def test_run_fails_when_duplicate_providers_requested(cli_runner: CliRunner, tmp_path: Path) -> None:
+def test_run_fails_when_duplicate_providers_requested(
+    cli_runner: CliRunner, tmp_path: Path
+) -> None:
     config_path = tmp_path / "providers.toml"
     db_path = tmp_path / "bench.duckdb"
     prompts_path = tmp_path / "prompts.txt"
@@ -492,7 +508,9 @@ def test_run_fails_when_duplicate_providers_requested(cli_runner: CliRunner, tmp
     assert "Duplicate provider names are not allowed" in result.stdout
 
 
-def test_run_fails_when_prompt_jsonl_has_invalid_line(cli_runner: CliRunner, tmp_path: Path) -> None:
+def test_run_fails_when_prompt_jsonl_has_invalid_line(
+    cli_runner: CliRunner, tmp_path: Path
+) -> None:
     config_path = tmp_path / "providers.toml"
     db_path = tmp_path / "bench.duckdb"
     prompts_path = tmp_path / "prompts.jsonl"
@@ -622,7 +640,10 @@ def test_run_supports_provider_and_prompt_concurrency(
     prompts_path = tmp_path / "prompts.txt"
     prompts_path.write_text("hello\nworld\n", encoding="utf-8")
 
-    for name, model in [("openai", "gpt-4o-mini"), ("openrouter", "anthropic/claude-3-7-sonnet")]:
+    for name, model in [
+        ("openai", "gpt-4o-mini"),
+        ("openrouter", "anthropic/claude-3-7-sonnet"),
+    ]:
         add_result = cli_runner.invoke(
             app,
             [
@@ -663,7 +684,9 @@ def test_run_supports_provider_and_prompt_concurrency(
     payload = json.loads(run_result.stdout)
     assert payload["run_id"] == "run-concurrency"
     assert len(payload["providers"]) == 2
-    provider_names = sorted(provider["provider_name"] for provider in payload["providers"])
+    provider_names = sorted(
+        provider["provider_name"] for provider in payload["providers"]
+    )
     assert provider_names == ["openai", "openrouter"]
     assert all(provider["total_requests"] == 2 for provider in payload["providers"])
 
@@ -857,7 +880,9 @@ def test_prompt_generate_refuses_overwrite_without_force(
     assert "already exists" in result.stdout
 
 
-def test_prompt_generate_fails_when_provider_not_found(cli_runner: CliRunner, tmp_path: Path) -> None:
+def test_prompt_generate_fails_when_provider_not_found(
+    cli_runner: CliRunner, tmp_path: Path
+) -> None:
     output_path = tmp_path / "prompts.txt"
     result = cli_runner.invoke(
         app,
@@ -1266,7 +1291,9 @@ def test_report_remove_deletes_run(
     assert "No runs found." in list_result.stdout
 
 
-def test_report_remove_fails_when_run_missing(cli_runner: CliRunner, tmp_path: Path) -> None:
+def test_report_remove_fails_when_run_missing(
+    cli_runner: CliRunner, tmp_path: Path
+) -> None:
     result = cli_runner.invoke(
         app,
         [

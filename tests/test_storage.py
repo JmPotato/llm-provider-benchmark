@@ -257,7 +257,9 @@ def test_get_provider_summary_raises_for_unknown_provider(tmp_path: Path) -> Non
         storage.get_provider_summary(run_id="run-1", provider_name="missing")
 
 
-def test_get_provider_summary_with_no_requests_returns_empty_quantiles(tmp_path: Path) -> None:
+def test_get_provider_summary_with_no_requests_returns_empty_quantiles(
+    tmp_path: Path,
+) -> None:
     storage = BenchmarkStorage(tmp_path / "bench.duckdb")
     storage.create_run(run_id="run-1", started_at=0.0, config_json="{}")
     storage.upsert_provider_snapshot(

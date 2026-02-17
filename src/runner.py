@@ -14,8 +14,9 @@ from storage import BenchmarkStorage
 
 
 class LLMClientProtocol(Protocol):
-    def stream_completion(self, provider: ProviderConfig, prompt: str) -> Iterable[str]:
-        ...
+    def stream_completion(
+        self, provider: ProviderConfig, prompt: str
+    ) -> Iterable[str]: ...
 
 
 RequestCompleteCallback = Callable[[RequestRecord], None]
@@ -68,7 +69,9 @@ class LiteLLMClient:
         if provider.api_key_env:
             api_key = os.getenv(provider.api_key_env)
             if not api_key:
-                raise ValueError(f"Missing API key from environment variable {provider.api_key_env!r}")
+                raise ValueError(
+                    f"Missing API key from environment variable {provider.api_key_env!r}"
+                )
             request_options["api_key"] = api_key
         if provider.extra_headers:
             request_options["extra_headers"] = provider.extra_headers
@@ -178,7 +181,13 @@ class BenchmarkRunner:
             slo=slo,
             on_request_complete=on_request_complete,
         )
-        for _, request_record, request_token_events, success, slo_passed in request_outputs:
+        for (
+            _,
+            request_record,
+            request_token_events,
+            success,
+            slo_passed,
+        ) in request_outputs:
             request_records.append(request_record)
             token_events.extend(request_token_events)
             if success:
@@ -205,7 +214,9 @@ class BenchmarkRunner:
         provider_name = run_data.result.provider_name
         self.storage.insert_request_records(run_data.request_records)
         self.storage.insert_token_events(run_data.token_events)
-        self.storage.refresh_window_metrics(run_id=run_data.result.run_id, provider_name=provider_name)
+        self.storage.refresh_window_metrics(
+            run_id=run_data.result.run_id, provider_name=provider_name
+        )
 
     def _run_prompts(
         self,
@@ -229,7 +240,9 @@ class BenchmarkRunner:
                     scheduled_at=next_schedule_at,
                     slo=slo,
                 )
-                self._notify_request_complete(callback=on_request_complete, request_record=output[1])
+                self._notify_request_complete(
+                    callback=on_request_complete, request_record=output[1]
+                )
                 outputs.append(output)
                 if interval_s is not None and next_schedule_at is not None:
                     next_schedule_at += interval_s
@@ -257,7 +270,9 @@ class BenchmarkRunner:
             ]
             for future in as_completed(futures):
                 output = future.result()
-                self._notify_request_complete(callback=on_request_complete, request_record=output[1])
+                self._notify_request_complete(
+                    callback=on_request_complete, request_record=output[1]
+                )
                 outputs.append(output)
 
         outputs.sort(key=lambda item: item[0])
@@ -338,7 +353,9 @@ class BenchmarkRunner:
                 token_timestamp=token_timestamp,
                 token_text=token_text,
             )
-            for token_index, (token_timestamp, token_text) in enumerate(zip(token_timestamps, token_texts))
+            for token_index, (token_timestamp, token_text) in enumerate(
+                zip(token_timestamps, token_texts)
+            )
         ]
         return request_index, request_record, token_events, success, slo_passed
 
@@ -366,7 +383,9 @@ class BenchmarkRunner:
             return
 
     @staticmethod
-    def _count_output_tokens(provider: ProviderConfig, output_text: str, fallback_count: int) -> int:
+    def _count_output_tokens(
+        provider: ProviderConfig, output_text: str, fallback_count: int
+    ) -> int:
         if not output_text:
             return 0
         try:

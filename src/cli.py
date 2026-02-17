@@ -32,7 +32,9 @@ DEFAULT_PROVIDER_CONFIG = Path("providers.toml")
 DEFAULT_BENCH_DB = Path("bench.duckdb")
 DEFAULT_PROMPT_FILE = Path("prompts.txt")
 DEFAULT_PROMPT_OUTPUT = Path("prompts.txt")
-DEFAULT_PROMPT_INSTRUCTION = "Prompts should be practical for benchmarking chatbot-style models."
+DEFAULT_PROMPT_INSTRUCTION = (
+    "Prompts should be practical for benchmarking chatbot-style models."
+)
 DEFAULT_PROVIDER_TEST_PROMPT = "Reply with one short sentence."
 QUANTILE_KEYS = ("p50", "p90", "p95", "p99")
 
@@ -63,7 +65,9 @@ class _RunProgress:
         self._lock = Lock()
         self._interactive = bool(self.enabled and sys.stderr.isatty())
         self._start_perf = time.perf_counter()
-        self.provider_completed = {provider_name: 0 for provider_name in self.provider_totals}
+        self.provider_completed = {
+            provider_name: 0 for provider_name in self.provider_totals
+        }
 
     def start(self) -> None:
         if not self.enabled or self._started:
@@ -162,7 +166,9 @@ def _load_prompts(prompt_file: Path) -> list[str]:
             try:
                 payload = json.loads(line)
             except json.JSONDecodeError as exc:
-                raise ValueError(f"Invalid JSONL at line {line_number}: {exc.msg}") from exc
+                raise ValueError(
+                    f"Invalid JSONL at line {line_number}: {exc.msg}"
+                ) from exc
             if not isinstance(payload, dict):
                 raise ValueError(
                     f"Invalid JSONL at line {line_number}: each row must be an object "
@@ -232,11 +238,15 @@ def _extract_generated_prompts(raw_output: str, count: int) -> list[str]:
                 prompts.append(candidate)
 
     if len(prompts) < count:
-        raise ValueError(f"Model output has only {len(prompts)} prompts, expected at least {count}")
+        raise ValueError(
+            f"Model output has only {len(prompts)} prompts, expected at least {count}"
+        )
     return prompts[:count]
 
 
-def _validate_provider_response(provider: ProviderConfig, prompt: str = DEFAULT_PROVIDER_TEST_PROMPT) -> int:
+def _validate_provider_response(
+    provider: ProviderConfig, prompt: str = DEFAULT_PROVIDER_TEST_PROMPT
+) -> int:
     client = LiteLLMClient()
     tokens = list(client.stream_completion(provider=provider, prompt=prompt))
     if not tokens:
@@ -252,7 +262,9 @@ def _validate_providers(
     passed = 0
     for provider in providers:
         try:
-            output_tokens = _validate_provider_response(provider=provider, prompt=prompt)
+            output_tokens = _validate_provider_response(
+                provider=provider, prompt=prompt
+            )
         except Exception as exc:  # noqa: BLE001
             results.append(
                 {
@@ -277,7 +289,9 @@ def _validate_providers(
     return results, passed
 
 
-def _render_provider_validation_report(scope: str, results: list[dict[str, object]], passed: int, failed: int) -> str:
+def _render_provider_validation_report(
+    scope: str, results: list[dict[str, object]], passed: int, failed: int
+) -> str:
     lines = [
         "Provider validation summary",
         f"Scope : {scope}",
@@ -363,8 +377,12 @@ def _render_report_summary(
                 _render_quantile_line("rps", throughput.get("rps", {}), unit="req/s"),
                 _render_quantile_line("tps", throughput.get("tps", {}), unit="tok/s"),
                 "Quality:",
-                _render_quantile_line("goodput", quality.get("goodput", {}), unit="req/s"),
-                _render_quantile_line("error_rate", quality.get("error_rate", {}), as_percent=True),
+                _render_quantile_line(
+                    "goodput", quality.get("goodput", {}), unit="req/s"
+                ),
+                _render_quantile_line(
+                    "error_rate", quality.get("error_rate", {}), as_percent=True
+                ),
             ]
         )
 
@@ -388,7 +406,7 @@ def _format_timestamp(value: object) -> str:
         return "-"
     try:
         numeric = float(value)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return "-"
     return datetime.fromtimestamp(numeric).astimezone().isoformat(timespec="seconds")
 
@@ -398,7 +416,7 @@ def _format_duration(value: object) -> str:
         return "-"
     try:
         return f"{float(value):.3f}s"
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return "-"
 
 
@@ -440,10 +458,18 @@ def prompt_generate(
         "--provider",
         help="Provider name used to generate prompts. Defaults to the first configured provider.",
     ),
-    count: int = typer.Option(10, "--count", "-n", min=1, help="Number of prompts to generate"),
-    force: bool = typer.Option(False, "--force", help="Overwrite if output file already exists"),
-    format: str | None = typer.Option(None, "--format", help="Output format: txt or jsonl", hidden=True),
-    config: Path = typer.Option(DEFAULT_PROVIDER_CONFIG, "--config", help="Provider registry file", hidden=True),
+    count: int = typer.Option(
+        10, "--count", "-n", min=1, help="Number of prompts to generate"
+    ),
+    force: bool = typer.Option(
+        False, "--force", help="Overwrite if output file already exists"
+    ),
+    format: str | None = typer.Option(
+        None, "--format", help="Output format: txt or jsonl", hidden=True
+    ),
+    config: Path = typer.Option(
+        DEFAULT_PROVIDER_CONFIG, "--config", help="Provider registry file", hidden=True
+    ),
     instruction: str = typer.Option(
         DEFAULT_PROMPT_INSTRUCTION,
         "--instruction",
@@ -469,7 +495,9 @@ def prompt_generate(
     if not provider_name:
         configured_providers = registry.list_providers()
         if not configured_providers:
-            typer.echo("No providers configured. Add one with `llm-bench provider add`.")
+            typer.echo(
+                "No providers configured. Add one with `llm-bench provider add`."
+            )
             raise typer.Exit(1)
         provider_name = configured_providers[0].name
 
@@ -482,7 +510,9 @@ def prompt_generate(
     request_prompt = _build_prompt_generation_task(count=count, instruction=instruction)
     client = LiteLLMClient()
     try:
-        generated_text = "".join(client.stream_completion(provider=provider_config, prompt=request_prompt))
+        generated_text = "".join(
+            client.stream_completion(provider=provider_config, prompt=request_prompt)
+        )
     except Exception as exc:  # noqa: BLE001
         typer.echo(f"Prompt generation failed: {type(exc).__name__}: {exc}")
         raise typer.Exit(1)
@@ -497,7 +527,9 @@ def prompt_generate(
     if resolved_format == "txt":
         body = "\n".join(prompts)
     else:
-        body = "\n".join(json.dumps({"prompt": prompt}, ensure_ascii=False) for prompt in prompts)
+        body = "\n".join(
+            json.dumps({"prompt": prompt}, ensure_ascii=False) for prompt in prompts
+        )
     output.write_text(body + "\n", encoding="utf-8")
 
     typer.echo(
@@ -518,8 +550,12 @@ def provider_add(
     name: str = typer.Option(..., "--name", help="Provider name"),
     model: str = typer.Option(..., "--model", help="Model identifier"),
     api_base: str | None = typer.Option(None, "--api-base", help="Provider base URL"),
-    api_key_env: str | None = typer.Option(None, "--api-key-env", help="Environment variable storing API key"),
-    config: Path = typer.Option(DEFAULT_PROVIDER_CONFIG, "--config", help="Provider registry file", hidden=True),
+    api_key_env: str | None = typer.Option(
+        None, "--api-key-env", help="Environment variable storing API key"
+    ),
+    config: Path = typer.Option(
+        DEFAULT_PROVIDER_CONFIG, "--config", help="Provider registry file", hidden=True
+    ),
 ) -> None:
     provider = ProviderConfig(
         name=name,
@@ -541,7 +577,9 @@ def provider_add(
 
 @provider_app.command("list")
 def provider_list(
-    config: Path = typer.Option(DEFAULT_PROVIDER_CONFIG, "--config", help="Provider registry file", hidden=True),
+    config: Path = typer.Option(
+        DEFAULT_PROVIDER_CONFIG, "--config", help="Provider registry file", hidden=True
+    ),
 ) -> None:
     registry = ProviderRegistry(config)
     providers = registry.list_providers()
@@ -558,7 +596,9 @@ def provider_list(
 @provider_app.command("remove")
 def provider_remove(
     name: str = typer.Option(..., "--name", help="Provider name"),
-    config: Path = typer.Option(DEFAULT_PROVIDER_CONFIG, "--config", help="Provider registry file", hidden=True),
+    config: Path = typer.Option(
+        DEFAULT_PROVIDER_CONFIG, "--config", help="Provider registry file", hidden=True
+    ),
 ) -> None:
     registry = ProviderRegistry(config)
     try:
@@ -571,10 +611,18 @@ def provider_remove(
 
 @provider_app.command("validate")
 def provider_validate(
-    name: str | None = typer.Option(None, "--name", help="Provider name (validate all when omitted)"),
-    prompt: str = typer.Option(DEFAULT_PROVIDER_TEST_PROMPT, "--prompt", "-p", help="Validation prompt"),
-    json_output: bool = typer.Option(False, "--json", help="Output machine-readable JSON"),
-    config: Path = typer.Option(DEFAULT_PROVIDER_CONFIG, "--config", help="Provider registry file", hidden=True),
+    name: str | None = typer.Option(
+        None, "--name", help="Provider name (validate all when omitted)"
+    ),
+    prompt: str = typer.Option(
+        DEFAULT_PROVIDER_TEST_PROMPT, "--prompt", "-p", help="Validation prompt"
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output machine-readable JSON"
+    ),
+    config: Path = typer.Option(
+        DEFAULT_PROVIDER_CONFIG, "--config", help="Provider registry file", hidden=True
+    ),
 ) -> None:
     registry = ProviderRegistry(config)
     if name:
@@ -603,7 +651,11 @@ def provider_validate(
     if json_output:
         typer.echo(json.dumps(payload, ensure_ascii=False))
     else:
-        typer.echo(_render_provider_validation_report(scope=scope, results=results, passed=passed, failed=failed))
+        typer.echo(
+            _render_provider_validation_report(
+                scope=scope, results=results, passed=passed, failed=failed
+            )
+        )
     if failed:
         raise typer.Exit(1)
 
@@ -615,9 +667,13 @@ def run_benchmark(
         "--providers",
         help="Comma-separated provider names. Defaults to all configured providers.",
     ),
-    prompt_file: Path = typer.Option(DEFAULT_PROMPT_FILE, "--prompt-file", help="Prompt file (.txt or .jsonl)"),
+    prompt_file: Path = typer.Option(
+        DEFAULT_PROMPT_FILE, "--prompt-file", help="Prompt file (.txt or .jsonl)"
+    ),
     db: Path = typer.Option(DEFAULT_BENCH_DB, "--db", "-d", help="DuckDB output file"),
-    target_rps: float | None = typer.Option(None, "--rps", "--target-rps", help="Target requests per second"),
+    target_rps: float | None = typer.Option(
+        None, "--rps", "--target-rps", help="Target requests per second"
+    ),
     provider_concurrency: int = typer.Option(
         1,
         "--provider-concurrency",
@@ -635,10 +691,18 @@ def run_benchmark(
         "--progress/--no-progress",
         help="Show live progress on stderr",
     ),
-    max_ttft_s: float | None = typer.Option(None, "--max-ttft-s", help="SLO threshold for TTFT"),
-    max_e2e_s: float | None = typer.Option(None, "--max-e2e-s", help="SLO threshold for E2E latency"),
-    config: Path = typer.Option(DEFAULT_PROVIDER_CONFIG, "--config", help="Provider registry file", hidden=True),
-    run_id: str | None = typer.Option(None, "--run-id", help="Optional run id", hidden=True),
+    max_ttft_s: float | None = typer.Option(
+        None, "--max-ttft-s", help="SLO threshold for TTFT"
+    ),
+    max_e2e_s: float | None = typer.Option(
+        None, "--max-e2e-s", help="SLO threshold for E2E latency"
+    ),
+    config: Path = typer.Option(
+        DEFAULT_PROVIDER_CONFIG, "--config", help="Provider registry file", hidden=True
+    ),
+    run_id: str | None = typer.Option(
+        None, "--run-id", help="Optional run id", hidden=True
+    ),
 ) -> None:
     if target_rps is not None and target_rps <= 0:
         typer.echo("Target requests per second must be greater than 0.")
@@ -655,7 +719,10 @@ def run_benchmark(
         seen_provider_names: set[str] = set()
         duplicate_provider_names: list[str] = []
         for provider_name in provider_names:
-            if provider_name in seen_provider_names and provider_name not in duplicate_provider_names:
+            if (
+                provider_name in seen_provider_names
+                and provider_name not in duplicate_provider_names
+            ):
                 duplicate_provider_names.append(provider_name)
             seen_provider_names.add(provider_name)
         if duplicate_provider_names:
@@ -674,7 +741,9 @@ def run_benchmark(
     else:
         selected_providers = registry.list_providers()
         if not selected_providers:
-            typer.echo("No providers configured. Add one with `llm-bench provider add`.")
+            typer.echo(
+                "No providers configured. Add one with `llm-bench provider add`."
+            )
             raise typer.Exit(1)
         provider_names = [provider.name for provider in selected_providers]
 
@@ -697,7 +766,9 @@ def run_benchmark(
         prompts_per_provider=len(prompts),
         provider_concurrency=provider_concurrency,
         prompt_concurrency=prompt_concurrency,
-        provider_totals={provider.name: len(prompts) for provider in selected_providers},
+        provider_totals={
+            provider.name: len(prompts) for provider in selected_providers
+        },
         enabled=progress,
     )
     started_at = time.time()
@@ -738,13 +809,17 @@ def run_benchmark(
                 target_rps=target_rps,
                 prompt_concurrency=prompt_concurrency,
                 slo=slo,
-                on_request_complete=run_progress.on_request_complete if progress else None,
+                on_request_complete=run_progress.on_request_complete
+                if progress
+                else None,
             )
 
         def persist_provider_data(run_data: ProviderRunData) -> dict[str, object]:
             storage.insert_request_records(run_data.request_records)
             storage.insert_token_events(run_data.token_events)
-            storage.refresh_window_metrics(run_id=actual_run_id, provider_name=run_data.result.provider_name)
+            storage.refresh_window_metrics(
+                run_id=actual_run_id, provider_name=run_data.result.provider_name
+            )
             return asdict(run_data.result)
 
         if provider_concurrency <= 1 or len(selected_providers) <= 1:
@@ -764,7 +839,9 @@ def run_benchmark(
                     run_data = future.result()
                     completed_results[provider.name] = persist_provider_data(run_data)
 
-            provider_results = [completed_results[provider.name] for provider in selected_providers]
+            provider_results = [
+                completed_results[provider.name] for provider in selected_providers
+            ]
 
         storage.finish_run(run_id=actual_run_id, finished_at=time.time())
         run_finished = True
@@ -790,9 +867,13 @@ def run_benchmark(
 
 @report_app.command("summary")
 def report_summary(
-    run_id: str | None = typer.Option(None, "--run-id", help="Run identifier. Defaults to latest run."),
+    run_id: str | None = typer.Option(
+        None, "--run-id", help="Run identifier. Defaults to latest run."
+    ),
     provider: str | None = typer.Option(None, "--provider", help="Provider name"),
-    json_output: bool = typer.Option(False, "--json", help="Output machine-readable JSON"),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output machine-readable JSON"
+    ),
     db: Path = typer.Option(DEFAULT_BENCH_DB, "--db", "-d", help="DuckDB output file"),
 ) -> None:
     storage = BenchmarkStorage(db)
@@ -807,14 +888,20 @@ def report_summary(
 
         if provider:
             try:
-                summary = storage.get_provider_summary(run_id=actual_run_id, provider_name=provider)
+                summary = storage.get_provider_summary(
+                    run_id=actual_run_id, provider_name=provider
+                )
             except KeyError:
                 typer.echo(f"Provider not found in run: {provider}")
                 raise typer.Exit(1)
             if json_output:
                 typer.echo(
                     json.dumps(
-                        {"run_id": actual_run_id, "provider": provider, "summary": summary},
+                        {
+                            "run_id": actual_run_id,
+                            "provider": provider,
+                            "summary": summary,
+                        },
                         ensure_ascii=False,
                     )
                 )
@@ -834,21 +921,36 @@ def report_summary(
             raise typer.Exit(1)
 
         summaries = {
-            provider_name: storage.get_provider_summary(run_id=actual_run_id, provider_name=provider_name)
+            provider_name: storage.get_provider_summary(
+                run_id=actual_run_id, provider_name=provider_name
+            )
             for provider_name in providers
         }
         if json_output:
-            typer.echo(json.dumps({"run_id": actual_run_id, "providers": summaries}, ensure_ascii=False))
+            typer.echo(
+                json.dumps(
+                    {"run_id": actual_run_id, "providers": summaries},
+                    ensure_ascii=False,
+                )
+            )
         else:
-            typer.echo(_render_report_summary(run_id=actual_run_id, provider_summaries=summaries, db=db))
+            typer.echo(
+                _render_report_summary(
+                    run_id=actual_run_id, provider_summaries=summaries, db=db
+                )
+            )
     finally:
         storage.close()
 
 
 @report_app.command("list")
 def report_list(
-    limit: int | None = typer.Option(None, "--limit", "-n", min=1, help="Maximum number of runs to show"),
-    json_output: bool = typer.Option(False, "--json", help="Output machine-readable JSON"),
+    limit: int | None = typer.Option(
+        None, "--limit", "-n", min=1, help="Maximum number of runs to show"
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Output machine-readable JSON"
+    ),
     db: Path = typer.Option(DEFAULT_BENCH_DB, "--db", "-d", help="DuckDB output file"),
 ) -> None:
     storage = BenchmarkStorage(db)
