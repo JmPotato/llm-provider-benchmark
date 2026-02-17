@@ -584,14 +584,6 @@ def provider_add(
         api_key_env=api_key_env,
     )
 
-    logger.debug("Validating provider %r (model=%s)", name, model)
-    try:
-        _validate_provider_response(provider=provider)
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("Provider validation failed: %r [%s] %s", name, type(exc).__name__, exc, exc_info=True)
-        typer.echo(f"Provider validation failed: {type(exc).__name__}: {exc}")
-        raise typer.Exit(1)
-
     registry = ProviderRegistry(config)
     registry.save_provider(provider)
     logger.debug("Provider %r added to %s", name, config)

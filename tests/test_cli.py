@@ -82,40 +82,6 @@ def test_provider_add_list_remove(cli_runner: CliRunner, tmp_path: Path) -> None
     assert "No providers configured." in list_result_after.stdout
 
 
-def test_provider_add_fails_validation_and_not_persisted(
-    cli_runner: CliRunner,
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    config_path = tmp_path / "providers.toml"
-    monkeypatch.setattr("cli.LiteLLMClient", FailingLiteLLMClient)
-
-    add_result = cli_runner.invoke(
-        app,
-        [
-            "provider",
-            "add",
-            "--name",
-            "openai",
-            "--model",
-            "gpt-4o-mini",
-            "--api-base",
-            "https://api.openai.com/v1",
-            "--api-key-env",
-            "OPENAI_API_KEY",
-            "--config",
-            str(config_path),
-        ],
-    )
-    assert add_result.exit_code != 0
-    assert "Provider validation failed" in add_result.stdout
-
-    list_result = cli_runner.invoke(
-        app, ["provider", "list", "--config", str(config_path)]
-    )
-    assert list_result.exit_code == 0
-    assert "No providers configured." in list_result.stdout
-
 
 def test_provider_validate_all(cli_runner: CliRunner, tmp_path: Path) -> None:
     config_path = tmp_path / "providers.toml"
